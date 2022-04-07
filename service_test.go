@@ -98,32 +98,34 @@ func (r *stubRepo) GetTicketByDestination(ctx context.Context, destination strin
 
 func TestGetTicketByDestination(t *testing.T) {
 
-	repo := NewRepositoryTest(&DbMock{
-		db:  ticketsByDestination,
+	dbMock := &DbMock{
+		db:  tickets,
 		spy: false,
 		err: nil,
-	})
-
+	}
+	repo := NewRepositoryTest(dbMock)
 	service := NewService(repo)
 
 	tkts, err := service.GetTotalTickets(cxt, "China")
 
 	assert.Nil(t, err)
+	assert.True(t, dbMock.spy)
 	assert.Equal(t, len(ticketsByDestination), tkts)
 }
 
 func TestGetTotalTickets(t *testing.T) {
 
-	repo := NewRepositoryTest(&DbMock{
+	dbMock := &DbMock{
 		db:  tickets,
 		spy: false,
 		err: nil,
-	})
-
+	}
+	repo := NewRepositoryTest(dbMock)
 	service := NewService(repo)
 
-	tkts, err := service.GetTotalTickets(cxt, "China")
+	avr, err := service.AverageDestination(cxt, "China")
 
 	assert.Nil(t, err)
-	assert.Equal(t, len(ticketsByDestination), tkts)
+	assert.NotNil(t, avr)
+	assert.True(t, dbMock.spy)
 }
