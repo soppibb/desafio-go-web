@@ -6,24 +6,18 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/bootcamp-go/desafio-go-web/cmd/server/router"
+	"github.com/bootcamp-go/desafio-go-web/cmd/server/routes"
 	"github.com/bootcamp-go/desafio-go-web/internal/domain"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-
-	// Cargo csv.
-	list, err := LoadTicketsFromFile("../../tickets.csv")
-	if err != nil {
-		panic("Couldn't load tickets")
-	}
-
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) { c.String(200, "pong") })
 
-	router := router.NewRouter(r, list)
-	router.MapRoutes()
+	ticketsRoutes := routes.NewRouter(r)
+	ticketsRoutes.SetTicketsRoutes()
+
+	r.GET("/ping", func(c *gin.Context) { c.String(200, "pong") })
 
 	if err := r.Run(); err != nil {
 		panic(err)
