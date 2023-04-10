@@ -13,12 +13,42 @@ import (
 )
 
 type Router struct {
-	Engine *gin.Engine
+	router *gin.Engine
 }
 
-func (router *Router) Setup() {
+func (r *Router) Setup() error {
+	err := r.SetTicketsRoutes()
 
-	router.SetTicketsRoutes()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Router) SetTicketsRoutes() error {
+
+	allTickets, err := LoadTicketsFromFile("/Users/totorres/Desktop/desafio-go-web/cmd/server/tickets.csv")
+
+	if err != nil {
+		return err
+	}
+
+	repository := tickets.NewRepository(allTickets)
+	service := tickets.NewService(repository)
+	ticketHandler := handler.NewTicketHandler(service)
+
+	ticket := r.router.Group("/tickets")
+	{
+		ticket.GET("/getByCountry/:name", ticketHandler.GetTotal())
+		ticket.GET("/getAverage/:name", ticketHandler.GetAverageDestination())
+	}
+
+	return nil
+}
+
+func NewRouter(router *gin.Engine) *Router {
+	return &Router{router: router}
 }
 
 func LoadTicketsFromFile(path string) ([]domain.Ticket, error) {
@@ -52,26 +82,4 @@ func LoadTicketsFromFile(path string) ([]domain.Ticket, error) {
 	}
 
 	return ticketList, nil
-}
-
-func (router *Router) SetTicketsRoutes() error {
-
-	allTickets, err := LoadTicketsFromFile("/Users/totorres/Desktop/desafio-go-web/cmd/server/tickets.csv")
-
-	if err != nil {
-		return err
-	}
-
-	repository := tickets.NewRepository(allTickets)
-	service := tickets.NewService(repository)
-	ticketHandler := handler.NewTicketHandler(service)
-
-	router.Engine.GET("/tickets/getByCountry/:name", ticketHandler.GetTotal())
-	router.Engine.GET("/tickets/getAverage/:name", ticketHandler.GetAverageDestination())
-
-	return nil
-}
-
-func NewRouter(engine *gin.Engine) *Router {
-	return &Router{engine}
 }
